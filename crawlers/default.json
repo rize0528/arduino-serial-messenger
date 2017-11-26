@@ -1,0 +1,31 @@
+{
+  "display": "",
+  "items": [
+    {
+      "serial_no": 0,
+      "url": "http://rate.bot.com.tw/xrt?Lang=en-US",
+      "css_selector_sequence": [
+        [
+          ["select","div .sp-japan-div"],
+          ["parent",2],
+          ["next",1,"td"]
+        ],
+        [
+          ["select","div .sp-japan-div"],
+          ["parent",2],
+          ["next",2,"td"]
+        ],
+        [
+          ["select","div .sp-japan-div"],
+          ["parent",2],
+          ["next",3,"td"]
+        ],
+        [
+          ["select","div .sp-japan-div"],
+          ["parent",2],
+          ["next",4,"td"]
+        ]
+      ] 
+    }
+  ]
+}
