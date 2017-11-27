@@ -11,7 +11,21 @@ class SoupCrawler:
   stdout = sys.stdout
   stderr = sys.stderr
   #
-  def crawl_all(self):
+  def get_text(self):
+    c = self.get_items()
+    if not isinstance(c, list): return None
+    rtn = []
+    for _ in c:
+      if 'quried' in _: quried = _['quried']
+      else: quried = []
+      _rtn = []
+      for __ in quried:
+        if isinstance(__, Tag) or isinstance(__, BeautifulSoup):
+          _rtn.append(__.get_text())
+      rtn.append(_rtn)
+    return rtn 
+  #
+  def get_items(self):
     #
     def _parse_seq(soup,sequence):
       #
@@ -39,34 +53,36 @@ class SoupCrawler:
           pass 
       return _bs_tag
     #
-    mission_report = []
-    for mission in self.crawler_items:
-      #
-      if 'url' in mission:
-        url = mission["url"]
-      else:
-        self.__std_msg__(stderr, '[Warning] URL does not specify in the crawler configurations.')
-        continue
-      #
-      if 'css_selector_sequence' in mission:
-        seq = mission["css_selector_sequence"]
-      else:
-        self.__std_msg__(stderr, '[Warning] Select sequence didn\'t specified in the crawler configurations.')
-        continue
-      #
-      serial = 0
-      if "serial_no" in mission:
-        serial = int(mission['serial_no'])
-      #
-      html_content = request.urlopen(url)
-      soup = BeautifulSoup(html_content,'html.parser')
-      #
-      queried = []
-      for seq_no in seq:
-        queried.append(_parse_seq(soup,seq_no))
-      #
-      mission_report.append({"serial_no":serial,"quried":queried,"target_url":url})
-    return mission_report
+    def _mission():
+      mission_report = []
+      for mission in self.crawler_items:
+        #
+        if 'url' in mission:
+          url = mission["url"]
+        else:
+          self.__std_msg__(stderr, '[Warning] URL does not specify in the crawler configurations.')
+          continue
+        #
+        if 'css_selector_sequence' in mission:
+          seq = mission["css_selector_sequence"]
+        else:
+          self.__std_msg__(stderr, '[Warning] Select sequence didn\'t specified in the crawler configurations.')
+          continue
+        #
+        serial = 0
+        if "serial_no" in mission:
+          serial = int(mission['serial_no'])
+        #
+        html_content = request.urlopen(url)
+        soup = BeautifulSoup(html_content,'html.parser')
+        #
+        queried = []
+        for seq_no in seq:
+          queried.append(_parse_seq(soup,seq_no))
+        #
+        mission_report.append({"serial_no":serial,"quried":queried,"target_url":url})
+      return mission_report
+    return _mission()
   #
   def __check_path__(self,path):
     if not os.path.exists(path):
@@ -105,4 +121,5 @@ class SoupCrawler:
 #
 if __name__ == "__main__":
   sc = SoupCrawler('../crawlers/default.json')
-  print(sc.crawl_all())
+  #print(sc.get_items())
+  print(sc.get_text())
