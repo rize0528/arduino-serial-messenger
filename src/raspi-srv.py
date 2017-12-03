@@ -5,18 +5,12 @@ import random,string
 import configparser,argparse
 import dweepy as dp
 from bs4 import BeautifulSoup
+from time import sleep
+from bs4crawler import SoupCrawler
+from serial import Serial
 #
 import pdb
 #
-def watch_tb():
-  #
-  pass
-#
-
-#
-def get_serial(port, baud_rate):
-  pass
-
 #
 def get_dweet_payload(thing_name,auth=""):
   #
@@ -41,7 +35,8 @@ def main():
   #
   parser = argparse.ArgumentParser(description='''Arduino serial messenger''')
   parser.add_argument('-c','--conf',default='../conf/conf.ini')
-  parser.add_argument('-l','--cralwer',default='../crawlers/default.ini')
+  parser.add_argument('-l','--cralwer',default='../crawlers/default.json')
+  #parser.add_argument('-d','--daemon',choices=["start","stop","restart"],required=True)
   args = parser.parse_args()
   #
   cfg = configparser.RawConfigParser()
@@ -60,10 +55,29 @@ def main():
 
 
 
+  #dweet_payload = get_dweet_payload(dthing, dauth)
+  #crawled = SoupCrawler(args.cralwer) 
+
+  #print(dweet_payload)
+  #print(crawled.get_text())
+
+  serial = Serial(cfg.get('Arduino','port'), cfg.get('Arduino','baud_rate'))
+  
+  #
   dweet_payload = get_dweet_payload(dthing, dauth)
-
-  print(dweet_payload)
-
+  while True:
+    dmessage = "".join(get_dweet_payload(dthing, dauth))
+    try:
+      crawled = SoupCrawler(args.cralwer) 
+      crawled_txt = crawled.get_text()[0]
+    except:
+      continue
+    
+    cmessage = "JPY = Cash: {}, Spot: {} = ".format(crawled_txt[1],crawled_txt[3]) 
+    message = "    Live-> {}, Info-> {}".format(dmessage, cmessage)
+    print('Send message: {}'.format(message))
+    serial.write(message.encode())
+    sleep(100)
 #
 
 if __name__ == "__main__":
