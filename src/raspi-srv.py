@@ -10,6 +10,7 @@ import pdb
 #
 def watch_tb():
   #
+  pass
 #
 
 #
@@ -23,19 +24,22 @@ def get_dweet_payload(dweet_base_url,thing_name):
 #
 def id_generator(size=10):
   chars = string.ascii_letters + string.digits
-  return 'pySerialMsg:'+''.join([random.choice(chars) for _ in range(size)]
+  return 'pySerialMsg_'+''.join([random.choice(chars) for _ in range(size)])
 #
 def main():
   #
   parser = argparse.ArgumentParser(description='''Arduino serial messenger''')
   parser.add_argument('-c','--conf',default='../conf/conf.ini')
   parser.add_argument('-l','--cralwer',default='../crawlers/default.ini')
-  parser.add_argument('-tn','--thingname', dest='thingname',
+  parser.add_argument('-tn','--thingname',dest='thingname',help='Specify a custom name for dweet thing.')
   args = parser.parse_args()
   #
   cfg = configparser.ConfigParser()
   cfg.read(args.conf)
-  pass
+  #
+  pdb.set_trace()  
+
+
 #
 
 if __name__ == "__main__":
