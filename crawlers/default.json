@@ -4,28 +4,42 @@
     {
       "serial_no": 0,
       "url": "http://rate.bot.com.tw/xrt?Lang=en-US",
+      "output_template":"TBank-Spot:{3} -Cash:{1}",
       "css_selector_sequence": [
         [
-          ["select","div .sp-japan-div"],
+          ["select_one","div .sp-japan-div"],
           ["parent",2],
           ["next",1,"td"]
         ],
         [
-          ["select","div .sp-japan-div"],
+          ["select_one","div .sp-japan-div"],
           ["parent",2],
           ["next",2,"td"]
         ],
         [
-          ["select","div .sp-japan-div"],
+          ["select_one","div .sp-japan-div"],
           ["parent",2],
           ["next",3,"td"]
         ],
         [
-          ["select","div .sp-japan-div"],
+          ["select_one","div .sp-japan-div"],
           ["parent",2],
           ["next",4,"td"]
         ]
       ] 
+    },
+    {
+      "serial_no": 0,
+      "url": "https://www.cathaybk.com.tw/cathaybk/personal/exchange/product/currency-billboard/",
+      "output_template":"CathayJPY:{0}",
+      "css_selector_sequence": [
+        [
+          ["select_match",".icon_currency ~ font","Japanese Yen$"],
+          ["parent",1],
+          ["next",2],
+          ["select_one","font"]
+        ]
+      ]
     }
   ]
 }

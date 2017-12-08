@@ -9,7 +9,6 @@ from time import sleep
 from bs4crawler import SoupCrawler
 from serial import Serial
 #
-import pdb
 #
 #
 def get_dweet_payload(thing_name,auth=""):
@@ -69,11 +68,13 @@ def main():
     dmessage = "".join(get_dweet_payload(dthing, dauth))
     try:
       crawled = SoupCrawler(args.cralwer) 
-      crawled_txt = crawled.get_text()[0]
+      #crawled_txt = crawled.get_text()[0]
+      crawled_text = map(lambda x: x['output_text'],crawled.get_items())
     except:
-      continue
+      crawled_text = ["N/A"]
     
-    cmessage = "JPY = Cash: {}, Spot: {} = ".format(crawled_txt[1],crawled_txt[3]) 
+    cmessage = " ".join(list(map(lambda x: "["+x+"]", crawled_text)))
+    #cmessage = "JPY = Cash: {}, Spot: {} = ".format(crawled_txt[1],crawled_txt[3]) 
     message = "    Live-> {}, Info-> {}".format(dmessage, cmessage)
     print('Send message: {}'.format(message))
     serial.write(message.encode())

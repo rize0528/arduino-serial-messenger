@@ -1,10 +1,11 @@
 import os
 import sys
 import json
+import re
+import requests
 from urllib import request
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-import pdb
 #
 class SoupCrawler:
   #
@@ -33,9 +34,15 @@ class SoupCrawler:
       for step in sequence:
         action = step[0]
         #
-        if action == "select":
+        if action == "select_one":
           target = step[1]
           _bs_tag = _bs_tag.select_one(target)
+        elif action == "select_match":
+          target = step[1]
+          RE_SEARCH = re.compile(step[2])
+          _selected = map(lambda x: x, _bs_tag.select(target))
+          _filtered = list(filter(lambda x: RE_SEARCH.search(x.get_text()), _selected))
+          if len(_filtered)>0: _bs_tag = _filtered[0]
         elif action == "parent":
           iterate = int(step[1])
           for _ in range(iterate):
@@ -43,7 +50,8 @@ class SoupCrawler:
             except: _bs_tag = None
         elif (action == "next" or action == "previous"):
           iterate = int(step[1])
-          tag = step[2]
+          try: tag = step[2]
+          except: tag = None
           if tag is None: tag = ""
           for _ in range(iterate):
             if _bs_tag is None: return None
@@ -52,6 +60,42 @@ class SoupCrawler:
         else:
           pass 
       return _bs_tag
+    #
+    def _html_opener(url, retry=3):
+      #
+      _rty, rtn_code = 1, 0
+      while True:
+        #
+        # Use requests library to get html content
+        try: 
+          _r = requests.get(url)
+          rtn_code = _r.status_code
+          if _r.status_code == 200:
+            try:
+              html = str(_r.text.encode('ascii','ignore'))
+              return html
+            except:
+              html = ""
+        except: html = ""
+
+        # Use urllib.request.urlopen to get html content
+        try:
+          _r = request.urlopen(url)
+          rtn_code = _r.status
+          if _r.status == 200:
+            try:
+              html = _r.read()
+              return html
+            except: html = ""
+        except: html = ""
+        #
+        if html == "" and _rty <= retry:
+          print('[Crawl] Status: {}, retrying: "{}" ({}/{})'.format(rtn_code,url,_rty,retry))
+          _rty +=1
+          continue
+        return "<p>Failed to crawl the website</p>"
+
+      
     #
     def _mission():
       mission_report = []
@@ -63,6 +107,11 @@ class SoupCrawler:
           self.__std_msg__(stderr, '[Warning] URL does not specify in the crawler configurations.')
           continue
         #
+        if 'output_template' in mission:
+          text_template = mission["output_template"]
+        else:
+          text_template = None
+        #
         if 'css_selector_sequence' in mission:
           seq = mission["css_selector_sequence"]
         else:
@@ -73,14 +122,26 @@ class SoupCrawler:
         if "serial_no" in mission:
           serial = int(mission['serial_no'])
         #
-        html_content = request.urlopen(url)
+        html_content = _html_opener(url)
+        #html_content = request.urlopen(url)
+        #
         soup = BeautifulSoup(html_content,'html.parser')
         #
         queried = []
         for seq_no in seq:
           queried.append(_parse_seq(soup,seq_no))
         #
-        mission_report.append({"serial_no":serial,"quried":queried,"target_url":url})
+        try:
+          _text = list(map(lambda x: x.get_text(),queried))
+        except:
+          _text = [""]
+        if text_template is not None:
+          try: output_text = text_template.format(*_text)
+          except: output_text = "[!]format_err[!]"
+        else: 
+          output_text = ",".join(_text)
+        #
+        mission_report.append({"serial_no":serial,"quried":queried,"target_url":url,"output_text": output_text})
       return mission_report
     return _mission()
   #
@@ -122,4 +183,6 @@ class SoupCrawler:
 if __name__ == "__main__":
   sc = SoupCrawler('../crawlers/default.json')
   #print(sc.get_items())
-  print(sc.get_text())
+  #print(sc.get_text())
+  _items = sc.get_items()
+  print(list(map(lambda x: x['output_text'], _items)))
